@@ -1,32 +1,30 @@
-from typing import Optional
-
 class Coordinate:
-    def __init__(self, coordinateX, coordinateY):
-        self.coordinateX = coordinateX
-        self.coordinateY = coordinateY
+    def __init__(self, x: float, y: float):
+        self.x = x
+        self.y = y
 
     @property
-    def coordinateX(self) -> Optional[float]:
+    def x(self) -> float:
         return self._coordinateX
 
-    @coordinateX.setter
-    def coordinateX(self, value: float) -> None:
+    @x.setter
+    def x(self, value: float) -> None:
         if isinstance(value, (int, float)):
             self._coordinateX = float(value)
         else:
-            self.coordinateX = None
+            self.x = None
 
     @property
-    def coordinateY(self) -> Optional[float]:
+    def y(self) -> float:
         return self._coordinateY
 
-    @coordinateY.setter
-    def coordinateY(self, value: float) -> None:
+    @y.setter
+    def y(self, value: float) -> None:
         if isinstance(value, (int, float)):
             self._coordinateY = float(value)
         else:
-            self.coordinateY = None
+            self.y = None
 
     @property
-    def coordinates(self) -> Optional[tuple[Optional[float], Optional[float]]]:
+    def coordinates(self) -> tuple[float, float]:
         return (self._coordinateX, self._coordinateY)
