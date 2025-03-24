@@ -12,6 +12,8 @@ JASNY_NIEBIESKI = (0, 255, 255)
 POMARANCZOWY = (255, 165, 0)
 NIEBIESKI = (0, 0, 255)
 SZARY = (128, 128, 128)
+CZARNY = (0, 0, 0)
+BIALY = (255, 255, 255)
 
 
 class Game:
@@ -37,7 +39,6 @@ class Game:
     __surface_selected_option: int = 0
 
     def __init__(self):
-        global NIEBIESKI
         pygame.init()
         pygame.display.set_caption("First Game")
 
@@ -155,7 +156,7 @@ class Game:
             self.__view_surface,
             self.__rotate_value
         )
-        self.__win.fill(NIEBIESKI)
+        self.__win.fill(CZARNY)
         surface_rect = self.__view_surface.get_rect(
             center=(self.__window_width/2, self.__window_height/2))
         self.__win.blit(self.__view_surface, surface_rect.topleft)
