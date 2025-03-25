@@ -2,6 +2,7 @@ import pygame
 import math
 from coordinate import Coordinate
 from typing import Callable
+import os
 
 # Color definition
 CZERWONY = (255, 0, 0)
@@ -55,6 +56,7 @@ class Game:
             pygame.K_8: lambda: self.__set_tranformation(8),
             pygame.K_9: lambda: self.__set_tranformation(9),
             pygame.K_0: lambda: self.__reset_rotation(),
+            pygame.K_TAB: lambda: self.__select_next_surface_content(),
         }
         self.__transformation_functions = {
             1: self.__tranform_option1,
@@ -69,6 +71,7 @@ class Game:
         }
         self.__surface_content_options = {
             0: self.__draw_polygon,
+            1: self.__get_test_picture
         }
         self.__polygon_initial_coords = self.__get_polygon_coordinates(
             self.__polygon_middle,
@@ -81,6 +84,11 @@ class Game:
                 self.__window_height
             )
         )
+
+    def __select_next_surface_content(self):
+        self.__surface_selected_option = (
+            self.__surface_selected_option + 1
+        ) % len(self.__surface_content_options)
 
     def __tranform_option1(self):
         pass
@@ -96,8 +104,35 @@ class Game:
             self.__view_surface,
             (self.__window_width // 2, self.__window_height * 2))
 
+    def __shear_point_x(self, x: int, y: int, H_x: float) -> tuple[int, int]:
+        x_new = int(H_x * y + x)
+        y_new = y
+        return x_new, y_new
+
+    def __shear_point_y(self, x: int, y: int, H_y: float) -> tuple[int, int]:
+        x_new = x
+        y_new = int(H_y * x + y)
+        return x_new, y_new
+
     def __tranform_option4(self):
-        raise NotImplementedError("Function not implemented")
+        shear_factor = -0.05
+        width, height = self.__view_surface.get_size()
+        additional_width = int(height * abs(shear_factor))
+        new_width = width + additional_width
+        sheared_surface = pygame.Surface((new_width, height), pygame.SRCALPHA)
+        sheared_surface.fill((0, 0, 0))
+
+        for y in range(height):
+            for x in range(width):
+                new_x, new_y = self.__shear_point_x(x, y, shear_factor)
+                color = self.__view_surface.get_at((x, y))
+                direction = 1 if shear_factor <= 0 else 0
+                sheared_surface.set_at(
+                    ((direction * additional_width) + new_x, new_y),
+                    color
+                )
+
+        self.__view_surface = sheared_surface
 
     def __tranform_option5(self):
         raise NotImplementedError("Function not implemented")
@@ -168,6 +203,26 @@ class Game:
             self.__polygon_initial_coords,
             self.__polygon_width
         )
+
+    def __get_test_picture(self):
+        try:
+            base_path = os.path.dirname(__file__)
+            image_path = os.path.join(base_path, "TestPicture.png")
+            if not os.path.exists(image_path):
+                raise FileNotFoundError(f"File {image_path} not found")
+
+            self.__view_surface = pygame.image.load(image_path)
+            self.__view_surface = pygame.transform.scale(
+                self.__view_surface,
+                (int(self.__window_width / 2), int(self.__window_height / 2))
+            )
+        except FileNotFoundError as e:
+            font = pygame.font.Font(None, 36)
+            text_surface = font.render(str(e), True, CZERWONY)
+            text_rect = text_surface.get_rect(
+                center=(self.__window_width / 2, self.__window_height / 2)
+            )
+            self.__view_surface.blit(text_surface, text_rect)
 
     def create_surface(self):
         self.__view_surface = pygame.Surface(
