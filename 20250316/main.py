@@ -1,8 +1,9 @@
 import pygame
 import math
+import os
 from coordinate import Coordinate
 from typing import Callable
-import os
+from custom_transformations import CustomTransformations
 
 # Color definition
 CZERWONY = (255, 0, 0)
@@ -18,20 +19,15 @@ BIALY = (255, 255, 255)
 
 
 class Game:
-    __window_width: float = 600.0
-    __window_height: float = 600.0
-    __polygon_middle: Coordinate = Coordinate(
-        __window_width / 2,
-        __window_height / 2
-    )
+    __window_width: int = 600
+    __window_height: int = 600
     __polygon_radius: float = 75.0
     __polygon_sides: int = 10
     __polygon_width: int = 2
-    __polygon_initial_coords: list[tuple[float, float]]
     __win: pygame.Surface = pygame.display.set_mode(
         (__window_width, __window_height)
     )
-    __view_surface: pygame.Surface
+    __object_surface: pygame.Surface
     __rotate_value: int = 0
     __keydown_functions: dict[pygame.event.Event, Callable]
     __transformation_functions: dict[int, Callable]
@@ -71,83 +67,148 @@ class Game:
         }
         self.__surface_content_options = {
             0: self.__draw_polygon,
-            1: self.__get_test_picture
+            1: self.__get_test_picture,
+            2: self.__draw_figure_1,
+            3: self.__draw_figure_2,
+            4: self.__draw_figure_3,
+            5: self.__draw_figure_4,
         }
-        self.__polygon_initial_coords = self.__get_polygon_coordinates(
-            self.__polygon_middle,
-            self.__polygon_radius,
-            self.__polygon_sides
-        )
-        self.__view_surface = pygame.Surface(
-            (
-                self.__window_width,
-                self.__window_height
-            )
-        )
 
     def __select_next_surface_content(self):
         self.__surface_selected_option = (
             self.__surface_selected_option + 1
         ) % len(self.__surface_content_options)
 
-    def __tranform_option1(self):
-        pass
+    def __center_object_surface_on_window(self) -> pygame.Rect:
+        rect = self.__object_surface.get_rect(
+            center=(int(self.__window_width / 2),
+                    int(self.__window_height / 2)))
+        return rect
 
-    def __tranform_option2(self):
-        self.__view_surface = pygame.transform.rotozoom(
-            self.__view_surface, -45, 2.0)
+    def __tranform_option1(self) -> None:
+        rect = self.__center_object_surface_on_window()
+        self.__object_surface = self.__get_full_window_transformed_surface(
+            self.__object_surface,
+            rect.topleft
+        )
 
-    def __tranform_option3(self):
-        self.__view_surface = pygame.transform.flip(
-            self.__view_surface, 0, 1)
-        self.__view_surface = pygame.transform.scale(
-            self.__view_surface,
-            (self.__window_width // 2, self.__window_height * 2))
+    def __tranform_option2(self,
+                           angle: float = 45) -> None:
+        self.__object_surface = CustomTransformations.rotate_surface(
+            self.__object_surface, angle)
+        self.__object_surface = pygame.transform.scale(
+            self.__object_surface,
+            (self.__object_surface.get_width(), self.__window_height * 0.9)
+        )
+        rect = self.__center_object_surface_on_window()
+        self.__object_surface = self.__get_full_window_transformed_surface(
+            self.__object_surface,
+            rect.topleft
+        )
 
-    def __shear_point_x(self, x: int, y: int, H_x: float) -> tuple[int, int]:
-        x_new = int(H_x * y + x)
-        y_new = y
-        return x_new, y_new
+    def __tranform_option3(self) -> None:
+        self.__object_surface = pygame.transform.flip(
+            self.__object_surface, 0, 1)
+        self.__object_surface = pygame.transform.scale(
+            self.__object_surface,
+            (self.__window_width / 2, self.__window_height * 2))
+        rect = self.__center_object_surface_on_window()
+        self.__object_surface = self.__get_full_window_transformed_surface(
+            self.__object_surface,
+            rect.topleft
+        )
 
-    def __shear_point_y(self, x: int, y: int, H_y: float) -> tuple[int, int]:
-        x_new = x
-        y_new = int(H_y * x + y)
-        return x_new, y_new
+    def __tranform_option4(self,
+                           shear_factor: float = 0.5) -> None:
+        sheared_surface = CustomTransformations.shear_surface_x(
+            shear_factor, self.__object_surface)
+        self.__object_surface = sheared_surface
+        rect = self.__center_object_surface_on_window()
+        self.__object_surface = self.__get_full_window_transformed_surface(
+            self.__object_surface,
+            rect.topleft
+        )
 
-    def __tranform_option4(self):
-        shear_factor = -0.05
-        width, height = self.__view_surface.get_size()
-        additional_width = int(height * abs(shear_factor))
-        new_width = width + additional_width
-        sheared_surface = pygame.Surface((new_width, height), pygame.SRCALPHA)
-        sheared_surface.fill((0, 0, 0))
+    def __tranform_option5(self) -> None:
+        self.__object_surface = pygame.transform.scale(
+            self.__object_surface,
+            (self.__window_width / 2, self.__window_height / 4)
+        )
+        rect = self.__center_object_surface_on_window()
+        rect.topleft = CustomTransformations.move_point(
+            rect.topleft, (0, -rect.topleft[1])
+        )
+        self.__object_surface = self.__get_full_window_transformed_surface(
+            self.__object_surface,
+            rect.topleft
+        )
 
-        for y in range(height):
-            for x in range(width):
-                new_x, new_y = self.__shear_point_x(x, y, shear_factor)
-                color = self.__view_surface.get_at((x, y))
-                direction = 1 if shear_factor <= 0 else 0
-                sheared_surface.set_at(
-                    ((direction * additional_width) + new_x, new_y),
-                    color
-                )
+    def __tranform_option6(self) -> None:
+        self.__tranform_option4()
+        self.__object_surface = pygame.transform.rotate(
+            self.__object_surface, 270)
+        rect = self.__center_object_surface_on_window()
+        self.__object_surface = self.__get_full_window_transformed_surface(
+            self.__object_surface,
+            rect.topleft
+        )
 
-        self.__view_surface = sheared_surface
+    def __tranform_option7(self) -> None:
+        self.__object_surface = pygame.transform.flip(
+            self.__object_surface, 1, 1)
+        self.__object_surface = pygame.transform.scale(
+            self.__object_surface,
+            (self.__window_width / 2, self.__window_height))
+        rect = self.__center_object_surface_on_window()
+        self.__object_surface = self.__get_full_window_transformed_surface(
+            self.__object_surface,
+            rect.topleft
+        )
 
-    def __tranform_option5(self):
-        raise NotImplementedError("Function not implemented")
+    def __tranform_option8(self,
+                           agnle: float = 60 * math.pi / 360) -> None:
+        self.__object_surface = pygame.transform.scale(
+            self.__object_surface,
+            (self.__window_width / 2, self.__window_height / 6)
+        )
+        self.__object_surface = CustomTransformations.rotate_surface(
+            self.__object_surface,
+            agnle)
+        rect = self.__center_object_surface_on_window()
+        rect.topright = CustomTransformations.move_point(
+            rect.topright, (0, rect.topright[1])
+        )
+        self.__object_surface = self.__get_full_window_transformed_surface(
+            self.__object_surface,
+            rect.topleft
+        )
 
-    def __tranform_option6(self):
-        raise NotImplementedError("Function not implemented")
+    def __tranform_option9(self,
+                           shear_factor: float = 0.5) -> None:
+        self.__object_surface = CustomTransformations.shear_surface_y(
+            shear_factor, self.__object_surface)
+        rect = self.__center_object_surface_on_window()
+        rect2 = self.__win.get_rect()
+        rect.topright = CustomTransformations.move_point(
+            rect.topright, (rect2.topright[0] - rect.topright[0], 0)
+        )
+        self.__object_surface = self.__get_full_window_transformed_surface(
+            self.__object_surface,
+            rect.topleft
+        )
 
-    def __tranform_option7(self):
-        raise NotImplementedError("Function not implemented")
-
-    def __tranform_option8(self):
-        raise NotImplementedError("Function not implemented")
-
-    def __tranform_option9(self):
-        raise NotImplementedError("Function not implemented")
+    def __get_full_window_transformed_surface(self,
+                                              surface: pygame.Surface,
+                                              lefttop: tuple[int, int]
+                                              ) -> pygame.Surface:
+        temp_surf = pygame.Surface(
+            (
+                int(self.__window_width),
+                int(self.__window_height)
+            )
+        )
+        temp_surf.blit(self.__object_surface, lefttop)
+        return temp_surf
 
     def __set_tranformation(self, option: int):
         self.__transformation_selected = option
@@ -171,8 +232,6 @@ class Game:
                 center.x + radius * math.cos(i * angle_step),
                 center.y + radius * math.sin(i * angle_step)
             )
-            if i % 3 == 0:
-                point.x += 40
             result.append(point.coordinates)
         return result
 
@@ -186,53 +245,170 @@ class Game:
                 )()
         return True
 
-    def __update_surface(self):
-        self.__view_surface = pygame.transform.rotate(
-            self.__view_surface,
-            self.__rotate_value
-        )
-        self.__win.fill(CZARNY)
-        surface_rect = self.__view_surface.get_rect(
-            center=(self.__window_width/2, self.__window_height/2))
-        self.__win.blit(self.__view_surface, surface_rect.topleft)
+# INITIAL SURFACES
 
-    def __draw_polygon(self):
+    def __draw_polygon(self) -> pygame.Surface:
+        rectangle_size = self.__polygon_radius * 2 + self.__polygon_width * 2
+        surface = self.__get_empty_surface(
+            round(rectangle_size + .5), round(rectangle_size + .5))
+        polygon_coords = self.__get_polygon_coordinates(
+            Coordinate(rectangle_size/2, rectangle_size/2),
+            self.__polygon_radius,
+            self.__polygon_sides
+        )
         pygame.draw.polygon(
-            self.__view_surface,
+            surface,
             NIEBIESKI,
-            self.__polygon_initial_coords,
+            polygon_coords,
             self.__polygon_width
         )
+        return surface
 
-    def __get_test_picture(self):
+    def __draw_figure_1(
+            self,
+            width: int = int(__window_width * 0.5),
+            height: int = int(__window_height * 0.5)) -> pygame.Surface:
+        global CZARNY
+        surface = self.__get_empty_surface(width, height)
+        rect_center = (width / 2, height / 2)
+        rect = surface.get_rect(center=rect_center)
+        pygame.draw.rect(surface,
+                         ZOLTY,
+                         rect)
+        pygame.draw.circle(surface,
+                           BIALY,
+                           rect_center,
+                           min(width, height) / 2 * 0.9)
+        return surface
+
+    def __draw_figure_2(self,
+                        width: int = int(__window_width * 0.5),
+                        height: int = int(__window_height * 0.5)
+                        ) -> pygame.Surface:
+        surface = self.__get_empty_surface(width, height)
+        points = [(width / 2, height / 2),
+                  (width, height),
+                  (width, 0),
+                  (0, 0),
+                  (0, height)
+                  ]
+        pygame.draw.polygon(surface,
+                            ZIELONY,
+                            points)
+        return surface
+
+    def __draw_figure_3(self,
+                        width: int = int(__window_width * 0.5),
+                        height: int = int(__window_height * 0.75)
+                        ) -> pygame.Surface:
+        surface = self.__get_empty_surface(width, height)
+        rect = surface.get_rect()
+        rect_height = int(height / 5)
+        rect.height = rect_height
+        rect.center = (int(surface.get_width() / 2),
+                       int(surface.get_height() / 2))
+        pygame.draw.rect(surface,
+                         NIEBIESKI,
+                         rect)
+        triangle_bottom_size = rect_height
+        points = [(rect.centerx, rect.centery - rect_height / 2),
+                  (rect.centerx - int(triangle_bottom_size * 0.5),
+                   rect.centery - rect_height / 2 -
+                   triangle_bottom_size),
+                  (rect.centerx + int(triangle_bottom_size * 0.5),
+                   rect.centery - rect_height / 2 -
+                   triangle_bottom_size)
+                  ]
+        pygame.draw.polygon(surface,
+                            NIEBIESKI,
+                            points)
+        points = [(rect.centerx, rect.centery + rect_height / 2),
+                  (rect.centerx - int(triangle_bottom_size * 0.5),
+                   rect.centery + rect_height / 2 +
+                   triangle_bottom_size),
+                  (rect.centerx + int(triangle_bottom_size * 0.5),
+                   rect.centery + rect_height / 2 +
+                   triangle_bottom_size)
+                  ]
+        pygame.draw.polygon(surface,
+                            NIEBIESKI,
+                            points)
+        return surface
+
+    def __draw_figure_4(self,
+                        width: int = int(__window_width * 0.5),
+                        height: int = int(__window_height * 0.5),
+                        line_width: int = 10) -> pygame.Surface:
+        surface = self.__get_empty_surface(width, height)
+        point1 = (0 + line_width / 2, 0 + line_width / 2)
+        point2 = (width - line_width / 2, 0 + line_width / 2)
+        point3 = (0 + line_width / 2, height - line_width / 2)
+        point4 = (width - line_width / 2, height - line_width / 2)
+        pygame.draw.line(surface,
+                         CZERWONY,
+                         point1,
+                         point2,
+                         line_width)
+        pygame.draw.line(surface,
+                         CZERWONY,
+                         point2,
+                         point3,
+                         line_width)
+        pygame.draw.line(surface,
+                         CZERWONY,
+                         point3,
+                         point4,
+                         line_width)
+        return surface
+
+    def __get_test_picture(self) -> pygame.Surface:
         try:
             base_path = os.path.dirname(__file__)
             image_path = os.path.join(base_path, "TestPicture.png")
             if not os.path.exists(image_path):
-                raise FileNotFoundError(f"File {image_path} not found")
+                raise FileNotFoundError("Picture not found")
 
-            self.__view_surface = pygame.image.load(image_path)
-            self.__view_surface = pygame.transform.scale(
-                self.__view_surface,
+            surface = pygame.image.load(image_path)
+            surface = pygame.transform.scale(
+                surface,
                 (int(self.__window_width / 2), int(self.__window_height / 2))
             )
         except FileNotFoundError as e:
             font = pygame.font.Font(None, 36)
-            text_surface = font.render(str(e), True, CZERWONY)
+            text_surface = font.render(str(e), True, CZERWONY, CZARNY)
             text_rect = text_surface.get_rect(
-                center=(self.__window_width / 2, self.__window_height / 2)
-            )
-            self.__view_surface.blit(text_surface, text_rect)
+                center=(int(self.__window_width / 2),
+                        int(self.__window_height / 2)))
+            surface = self.__get_empty_surface(
+                text_surface.get_width(), text_surface.get_height())
+            surface.blit(text_surface, text_rect.topleft)
+        finally:
+            return surface
+
+# UTILITY
 
     def create_surface(self):
-        self.__view_surface = pygame.Surface(
-            (
-                self.__window_width,
-                self.__window_height
-            )
-        )
-        self.__surface_content_options.get(
+        self.__object_surface = self.__surface_content_options.get(
             self.__surface_selected_option, self.__draw_polygon)()
+
+    def __update_surface(self):
+        temp = pygame.transform.rotate(
+            self.__object_surface,
+            self.__rotate_value,
+        )
+        rect = temp.get_rect(
+            center=(self.__object_surface.get_width() / 2,
+                    self.__object_surface.get_height() / 2)
+        )
+        self.__win.fill(CZARNY)
+        self.__win.blit(temp, rect)
+
+    def __get_empty_surface(self,
+                            width: int,
+                            height: int) -> pygame.Surface:
+        result = pygame.Surface((abs(width), abs(height)))
+        result.fill(CZARNY)
+        return result
 
     def run(self):
         run = True
@@ -240,7 +416,7 @@ class Game:
             self.create_surface()
             run = self.__process_game_events()
             self.__transformation_functions.get(
-                self.__transformation_selected, lambda: None)()
+                self.__transformation_selected, 1)()
             self.__update_surface()
             pygame.display.update()
 
