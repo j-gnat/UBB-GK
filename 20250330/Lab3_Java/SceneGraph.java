@@ -6,6 +6,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.awt.geom.*;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A panel that displays a two-dimensional animation that is constructed
@@ -42,8 +43,10 @@ public class SceneGraph extends JPanel {
 
 	private CompoundObject world; // SceneGraphNode representing the entire scene.
 
-	// TODO: Define global variables to represent animated objects in the scene.
-	private TransformedObject rotatingRect;  // (DELETE THIS EXAMPLE)
+	private TransformedObject rotatingPolygon1;
+	private TransformedObject rotatingPolygon2;
+	private TransformedObject lineOnTriangle;
+	private TransformedObject triangle;
 
 	/**
 	 *  Builds the data structure that represents the entire picture. 
@@ -52,12 +55,19 @@ public class SceneGraph extends JPanel {
 
 		world = new CompoundObject();  // Root node for the scene graph.
 
-		// TODO: Create objects and add them to the scene graph.
-		rotatingRect = new TransformedObject(filledRect);   // (DELETE THIS EXAMPLE)
-		rotatingRect.setScale(2,2).setColor(Color.RED); 
-		world.add(rotatingRect);
-
-	} // end createWorld()
+		rotatingPolygon1 = new TransformedObject(polygon);
+		rotatingPolygon1.setTranslation(-1, 1).setScale(1,1).setColor(Color.RED); 
+		world.add(rotatingPolygon1);
+		rotatingPolygon2 = new TransformedObject(polygon);
+		rotatingPolygon2.setTranslation(1, 0.5).setScale(1,1).setColor(Color.BLUE);
+		world.add(rotatingPolygon2);
+		lineOnTriangle = new TransformedObject(line);
+		lineOnTriangle.setScale(1, 1).setColor(Color.RED);
+		world.add(lineOnTriangle);
+		triangle = new TransformedObject(filledTriangle);
+		triangle.setTranslation(0, -1).setScale(1, 1).setColor(Color.GREEN);
+		world.add(triangle);
+		} // end createWorld()
 
 
 	/**
@@ -67,8 +77,8 @@ public class SceneGraph extends JPanel {
 	public void updateFrame() {
 		frameNumber++;
 
-		// TODO: Update state in preparation for drawing the next frame.
-		rotatingRect.setRotation(frameNumber*0.75); // (DELETE THIS EXAMPLE)
+		rotatingPolygon1.setRotation(frameNumber*0.75);
+		rotatingPolygon2.setRotation(frameNumber*0.75);
 
 	}
 
@@ -163,7 +173,10 @@ public class SceneGraph extends JPanel {
 	       // Create some basic objects as custom SceneGraphNodes.
 
 	private static SceneGraphNode line = new SceneGraphNode() { 
-		void doDraw(Graphics2D g) {  g.draw( new Line2D.Double( -0.5,0, 0.5,0) ); }
+		void doDraw(Graphics2D g) {  
+			g.setStroke(new BasicStroke(0.1f)); //https://stackoverflow.com/questions/2839508/java2d-increase-the-line-width
+			g.draw( new Line2D.Double( -1,1, 1,0.5) ); 
+		}
 	};
 
 	private static SceneGraphNode rect = new SceneGraphNode() {
@@ -185,12 +198,48 @@ public class SceneGraph extends JPanel {
 	private static SceneGraphNode filledTriangle = new SceneGraphNode() {
 		void doDraw(Graphics2D g) {  // width = 1, height = 1, center of base is at (0,0);
 			Path2D path = new Path2D.Double();
-			path.moveTo(-0.5,0);
-			path.lineTo(0.5,0);
-			path.lineTo(0,1);
+			path.moveTo(-0.25,0);
+			path.lineTo(0.25,0);
+			path.lineTo(0,1.75);
 			path.closePath();
 			g.fill(path);
 		}
+	};
+
+	private static SceneGraphNode polygon = new SceneGraphNode() {
+		void doDraw(Graphics2D g) { 
+			Path2D path = DrawPolygon(9, 0.5, new Point2D.Double(0,0));
+			g.draw(path);
+		}
+	};
+
+	private static SceneGraphNode filledPolygon = new SceneGraphNode() {
+		void doDraw(Graphics2D g) { 
+			Path2D path = DrawPolygon(9, 0.5, new Point2D.Double(0,0));
+			g.draw(path);
+		}
+	};
+
+	private static Path2D DrawPolygon(int sides, double radius, Point2D center) {
+		List<Point2D> coordinates = GetPolygonCoordinates(sides, radius, center);
+		Path2D path = new Path2D.Double();
+		path .moveTo(coordinates.get(0).getX(), coordinates.get(0).getY());
+		for (int i = 1; i < coordinates.size(); i++) {
+			path.lineTo(coordinates.get(i).getX(), coordinates.get(i).getY());
+		}
+		path.closePath();
+		return path;
+	};
+
+	private static List<Point2D> GetPolygonCoordinates(int sides, double radius, Point2D center) {
+		List<Point2D> coordinates = new ArrayList<>();
+		double angleStep = 2 * Math.PI / sides;
+		for (int i = 0; i < sides; i++) {
+			double x = center.getX() + radius * Math.cos(i * angleStep);
+			double y = center.getY() + radius * Math.sin(i * angleStep);
+			coordinates.add(new Point2D.Double(x, y));
+		}
+		return coordinates;
 	};
 
 
