@@ -6,6 +6,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import java.awt.geom.*;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A panel that displays a two-dimensional animation that is drawn
@@ -33,14 +34,12 @@ public class SubroutineHierarchy extends JPanel {
 	private final static double X_RIGHT = 4;
 	private final static double Y_BOTTOM = -3;
 	private final static double Y_TOP = 3;
-
+	
 	private final static Color BACKGROUND = Color.WHITE; // Initial background color for drawing.
-
+	
 	private float pixelSize;  // The size of a pixel in drawing coordinates.
-
+	
 	private int frameNumber = 0;  // Current frame number, goes up by one in each frame.
-
-	// TODO:  Define any other necessary state variables.
 
 	/**
 	 *  Responsible for drawing the entire scene.  The display is filled with the background
@@ -48,8 +47,9 @@ public class SubroutineHierarchy extends JPanel {
 	 */
 	private void drawWorld(Graphics2D g2) {
 
-		// TODO: Draw the content of the scene.
-		rotatingRect(g2);  // (DELETE THIS EXAMPLE)
+		Fan(g2, new Point2D.Double(1,-1), 9, Color.BLUE, 1.2);
+		Fan(g2, new Point2D.Double(2,1.25), 9, Color.GREEN, 0.95);
+		Fan(g2, new Point2D.Double(-2,1), 9, Color.PINK, 1.05);
 
 	} // end drawWorld()
 	
@@ -59,19 +59,41 @@ public class SubroutineHierarchy extends JPanel {
 	 */
 	private void updateFrame() {
 		frameNumber++;
-		// TODO: If other updates are needed for the next frame, do them here.
 	}
 
     
-	// TODO: Define methods for drawing objects in the scene.
-	
-	private void rotatingRect(Graphics2D g2) { // (DELETE THIS EXAMPLE)
-		AffineTransform saveTransform = g2.getTransform();  // (It might be necessary to save/restore transform and color)
+	private void Fan(Graphics2D g2, Point2D center, int polygonSides, Color triangleColor, double scale){
+		AffineTransform saveTransform = g2.getTransform();
 		Color saveColor = g2.getColor();
-		g2.setColor( Color.RED );
-		g2.rotate( Math.toRadians( frameNumber*0.75 ));
-		g2.scale( 2, 2 );
-		filledRect(g2);
+		BasicStroke saveStroke = (BasicStroke)g2.getStroke();
+
+		g2.scale(scale, scale);
+		g2.setColor(Color.BLACK);
+		Point2D p1 = new Point2D.Double(-0.75 + center.getX(), 1 + center.getY());
+		RotatingPolygon(g2, p1, polygonSides, 0.5);
+
+		Point2D p2 = new Point2D.Double(0.75 + center.getX(), 0.75 + center.getY());
+		RotatingPolygon(g2, p2, polygonSides, 0.5);
+
+		g2.setColor(Color.RED);
+		g2.setStroke( new BasicStroke(0.1f));
+		line(g2, p1, p2);
+
+		g2.setColor(triangleColor);
+		filledTriangle(g2, center);
+
+		g2.setStroke(saveStroke);
+		g2.setColor(saveColor);
+		g2.setTransform(saveTransform);
+	}
+
+	private void RotatingPolygon(Graphics2D g2, Point2D center, int sides, double radius) {
+		AffineTransform saveTransform = g2.getTransform();
+		Color saveColor = g2.getColor();
+		g2.translate(center.getX(), center.getY());
+		g2.rotate(Math.toRadians(frameNumber * 0.75));
+		g2.translate(-center.getX(), -center.getY());
+		Polygon(g2, sides, radius, center);
 		g2.setColor(saveColor);
 		g2.setTransform(saveTransform);
 	}
@@ -79,8 +101,8 @@ public class SubroutineHierarchy extends JPanel {
 
 	//------------------- Some methods for drawing basic shapes. ----------------
 	
-	private static void line(Graphics2D g2) { // Draws a line from (-0.5,0) to (0.5,0)
-		g2.draw( new Line2D.Double( -0.5,0, 0.5,0) );
+	private static void line(Graphics2D g2, Point2D from, Point2D to) {
+		g2.draw( new Line2D.Double( from.getX(),from.getY(), to.getX(),to.getY()) );
 	}
 
 	private static void rect(Graphics2D g2) { // Strokes a square, size = 1, center = (0,0)
@@ -99,14 +121,38 @@ public class SubroutineHierarchy extends JPanel {
 		g2.draw(new Ellipse2D.Double(-0.5,-0.5,1,1));
 	}
 	
-	private static void filledTriangle(Graphics2D g2) { // width = 1, height = 1, center of base is at (0,0);
+	private static void filledTriangle(Graphics2D g2, Point2D center) { // width = 1, height = 1, center of base is at (0,0);
 		Path2D path = new Path2D.Double();  
-		path.moveTo(-0.5,0);
-		path.lineTo(0.5,0);
-		path.lineTo(0,1);
+		path.moveTo(-0.25,-0.5);
+		path.lineTo(0.25,-0.5);
+		path.lineTo(0,0.9);
 		path.closePath();
+		g2.translate(center.getX(), center.getY());
 		g2.fill(path);
+		g2.translate(-center.getX(), -center.getY());
 	}
+
+	private static void Polygon(Graphics2D g2, int sides, double radius, Point2D center) {
+		List<Point2D> coordinates = GetPolygonCoordinates(sides, radius, center);
+		Path2D path = new Path2D.Double();
+		path .moveTo(coordinates.get(0).getX(), coordinates.get(0).getY());
+		for (int i = 1; i < coordinates.size(); i++) {
+			path.lineTo(coordinates.get(i).getX(), coordinates.get(i).getY());
+		}
+		path.closePath();
+		g2.draw(path);
+	};
+
+	private static List<Point2D> GetPolygonCoordinates(int sides, double radius, Point2D center) {
+		List<Point2D> coordinates = new ArrayList<>();
+		double angleStep = 2 * Math.PI / sides;
+		for (int i = 0; i < sides; i++) {
+			double x = center.getX() + radius * Math.cos(i * angleStep);
+			double y = center.getY() + radius * Math.sin(i * angleStep);
+			coordinates.add(new Point2D.Double(x, y));
+		}
+		return coordinates;
+	};
 
 
 
