@@ -43,10 +43,7 @@ public class SceneGraph extends JPanel {
 
 	private CompoundObject world; // SceneGraphNode representing the entire scene.
 
-	private TransformedObject rotatingPolygon1;
-	private TransformedObject rotatingPolygon2;
-	private TransformedObject lineOnTriangle;
-	private TransformedObject triangle;
+	private List<TransformedObject> rotatingObjects = new ArrayList<>(); // List of objects that are animated.
 
 	/**
 	 *  Builds the data structure that represents the entire picture. 
@@ -54,21 +51,36 @@ public class SceneGraph extends JPanel {
 	private void createWorld() {
 
 		world = new CompoundObject();  // Root node for the scene graph.
+		TransformedObject fan1 = new TransformedObject(Fan(Color.BLUE));
+		fan1.setTranslation(1, -1);
+		world.add(fan1);
+		TransformedObject fan2 = new TransformedObject(Fan(Color.GREEN));
+		fan2.setTranslation(2, 1.25).setScale(0.75, 0.75);
+		world.add(fan2);
+		TransformedObject fan3 = new TransformedObject(Fan(Color.PINK));
+		fan3.setTranslation(-2, 1).setScale(0.85, 0.85);
+		world.add(fan3);
 
-		rotatingPolygon1 = new TransformedObject(polygon);
-		rotatingPolygon1.setTranslation(-1, 1).setScale(1,1).setColor(Color.RED); 
-		world.add(rotatingPolygon1);
-		rotatingPolygon2 = new TransformedObject(polygon);
-		rotatingPolygon2.setTranslation(1, 0.5).setScale(1,1).setColor(Color.BLUE);
-		world.add(rotatingPolygon2);
-		lineOnTriangle = new TransformedObject(line);
-		lineOnTriangle.setScale(1, 1).setColor(Color.RED);
-		world.add(lineOnTriangle);
-		triangle = new TransformedObject(filledTriangle);
-		triangle.setTranslation(0, -1).setScale(1, 1).setColor(Color.GREEN);
-		world.add(triangle);
 		} // end createWorld()
 
+	private CompoundObject Fan(Color triangleColor){
+		CompoundObject fan = new CompoundObject();
+		TransformedObject rotatingPolygon1 = new TransformedObject(polygon);
+		rotatingPolygon1.setTranslation(-1, 1).setScale(1,1).setColor(Color.BLACK); 
+		fan.add(rotatingPolygon1);
+		rotatingObjects.add(rotatingPolygon1);
+		TransformedObject rotatingPolygon2 = new TransformedObject(polygon);
+		rotatingPolygon2.setTranslation(1, 0.5).setScale(1,1).setColor(Color.BLACK);
+		fan.add(rotatingPolygon2);
+		rotatingObjects.add(rotatingPolygon2);
+		TransformedObject lineOnTriangle = new TransformedObject(line);
+		lineOnTriangle.setScale(1, 1).setColor(Color.RED);
+		fan.add(lineOnTriangle);
+		TransformedObject triangle = new TransformedObject(filledTriangle);
+		triangle.setTranslation(0, -1).setScale(1, 1).setColor(triangleColor);
+		fan.add(triangle);
+		return fan;
+	}
 
 	/**
 	 * This method is called just before each frame is drawn.  It updates the modeling
@@ -77,9 +89,9 @@ public class SceneGraph extends JPanel {
 	public void updateFrame() {
 		frameNumber++;
 
-		rotatingPolygon1.setRotation(frameNumber*0.75);
-		rotatingPolygon2.setRotation(frameNumber*0.75);
-
+		for (TransformedObject transformedObject : rotatingObjects) {
+			transformedObject.setRotation(frameNumber*0.75);
+		}
 	}
 
 
@@ -208,6 +220,7 @@ public class SceneGraph extends JPanel {
 
 	private static SceneGraphNode polygon = new SceneGraphNode() {
 		void doDraw(Graphics2D g) { 
+			g.setStroke(new BasicStroke(0.02f));
 			Path2D path = DrawPolygon(9, 0.5, new Point2D.Double(0,0));
 			g.draw(path);
 		}
@@ -215,6 +228,7 @@ public class SceneGraph extends JPanel {
 
 	private static SceneGraphNode filledPolygon = new SceneGraphNode() {
 		void doDraw(Graphics2D g) { 
+			g.setStroke(new BasicStroke(0.02f));
 			Path2D path = DrawPolygon(9, 0.5, new Point2D.Double(0,0));
 			g.draw(path);
 		}
