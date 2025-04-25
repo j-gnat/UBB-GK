@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+width="14cm" height="10cm" style="background-color: white;"
+viewBox="0 0 14 10">
+    <defs>
+        <g id="poly-wheel" transform="rotate(0)">
+            <animateTransform 
+                attributeName="transform" 
+                attributeType="XML"
+                type="rotate" from="360" to="0" dur="10s"
+                repeatCount="indefinite"/>
+
+            <polygon 
+                points="0,-1 0.588,-0.809 0.951,-0.309 0.951,0.309 0.588,0.809 0,1 -0.588,0.809 -0.951,0.309 -0.951,-0.309 -0.588,-0.809"
+                fill="none" 
+                stroke="var(--poly-wheel-color, green)" 
+                stroke-width="0.02"/>
+            <line x1="0.588" y1="-0.809" x2="-0.588" y2="0.809" 
+                stroke="var(--poly-wheel-color, green)" 
+                stroke-width="0.02"/>
+            <line x1="0.951" y1="-0.309" x2="-0.951" y2="0.309" 
+                stroke="var(--poly-wheel-color, green)" 
+                stroke-width="0.02"/>
+            <line x1="0.951" y1="0.309" x2="-0.951" y2="-0.309" 
+                stroke="var(--poly-wheel-color, green)" 
+                stroke-width="0.02"/>
+            <line x1="0.588" y1="0.809" x2="-0.588" y2="-0.809" 
+                stroke="var(--poly-wheel-color, green)" 
+                stroke-width="0.02"/>
+            <line x1="0" y1="1" x2="0" y2="-1" 
+                stroke="var(--poly-wheel-color, green)" 
+                stroke-width="0.02"/>
+        </g>
+    </defs>
+
+    <defs>
+        <g id="fan">
+            <use xlink:href="#poly-wheel" transform="translate(1.5,0.5)"/>
+            <use xlink:href="#poly-wheel" transform="translate(-1.5,-0.5)"/>
+            <line x1="-1.5"
+                y1="-0.5"
+                x2="1.5"
+                y2="0.5"
+                stroke="red"
+                stroke-width="0.25"/>
+            <polygon 
+                points="0,0 -0.5,2.5 0.5,2.5"
+                fill="var(--triangle-color, pink)" 
+                stroke="var(--poly-wheel-color, green)" 
+                stroke-width="0.02"/>
+        </g>
+    </defs>
+
+    <g id="world">
+        <use xlink:href="#fan" 
+            style="--poly-wheel-color: black;
+                --triangle-color: green" 
+            transform="translate(10,2) scale(0.75,0.75)"/>
+
+        <use xlink:href="#fan" 
+        style="--poly-wheel-color: black;
+            --triangle-color: purple" 
+        transform="translate(3,2.5) scale(0.85,0.85)"/>
+
+        <use xlink:href="#fan" 
+        style="--poly-wheel-color: black;
+            --triangle-color: blue" 
+        transform="translate(7,6)"/>
+    </g>
+</svg>
