@@ -27,6 +27,12 @@
     let rotateX = 15;   // rotations of cube about the axes
     let rotateY = -15;
     let rotateZ = 0;
+    let objectId = 1;
+    const objectDict = {
+        0: cube,
+        1: spiral,
+        2: square
+    };
     
     // ------------------- functions for drawing the cube -------------------
     
@@ -75,6 +81,29 @@
         glPopMatrix(); // Restore matrix to its state before cube() was called.
     
     }
+
+    function circle(size, r, g, b, pointsCount) {
+        
+        glColor3u(r,g,b);
+        glBegin(GL_LINE_LOOP);
+        let angleStep = 2* Math.PI / pointsCount;
+        for(i = 0; i < pointsCount; i++)
+        {
+            let x = size * Math.cos(i * angleStep)
+            let y = size * Math.sin(i * angleStep);
+            glVertex3f(x, y, 0);
+        }
+        glEnd();
+    }
+
+    function spiral(size) {
+        glPushMatrix();
+        let r = 1;
+        let g = 0;
+        let b = 0;
+        circle(size, r, g, b, 100)
+        glPopMatrix();
+    }
     
     // ----------------------------------------------------------------------
 
@@ -87,7 +116,7 @@
         glRotatef(rotateY,0,1,0);
         glRotatef(rotateX,1,0,0);
         
-        cube(1);
+        objectDict[objectId](1);
         
     }
     
@@ -115,6 +144,12 @@
            rotateZ -= 15;
         else if ( key == 36 )  // home
            rotateX = rotateY = rotateZ = 0;
+        else if ( key == 49 )  // '1' key
+            objectId = 0;
+        else if ( key == 50 )  // '2' key
+            objectId = 1;
+        else if ( key == 51 )  // '3' key
+            objectId = 1;
         if (key >=34 && key <= 40) {
             evt.preventDefault();
         }
