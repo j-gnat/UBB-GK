@@ -20,6 +20,7 @@
 <script src="../script/demo-core.js"></script>
 <script src="../script/glsim.js"></script>
 <script src="../script/teapot-model-IFS.js"></script>
+<script src="../script/basic-object-models-IFS.js"></script>
 <script>
 
 var camera;
@@ -237,9 +238,9 @@ function display() {
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, [0.2, 0.2, 0.2, 1]);
 
     glPushMatrix();
-    glTranslatef(0,0.68,0);
-    glScalef(0.65,0.65,0.65);
-    glsimDrawModel(teapotModel);
+    glTranslatef(0, 0, 0);
+    glRotatef(-90, 1, 0, 0);
+    glsimDrawModel(piramide(6, 10, 6));
     glPopMatrix();
 }
 
