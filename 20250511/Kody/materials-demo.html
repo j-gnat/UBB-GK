@@ -21,7 +21,8 @@ var cubeModel = null,
     coneModel = null,
     cylinderModel = null,
     sphereModel = null,
-    torusModel = null;
+    torusModel = null
+    piramideModel = null;
 
 var materialProperties = [
     [ /* 1, 12 - basic gray */ 0.6, 0.6, 0.6, 1.0, 0.6, 0.6, 0.6, 1.0, 1, 1, 1, 1, 16 ],
@@ -93,6 +94,10 @@ function newModel() {
 	    sphereModel = sphereModel || uvSphere(0.5,128,64);
 	    currentModel = sphereModel;
 	    break;
+    case "Piramide":
+        piramideModel = piramideModel || piramide(0.6,1.2,9);
+        currentModel = piramideModel;
+        break;
     }
     draw();
 }
@@ -196,6 +201,7 @@ function init() {
 	<option>Cylinder</option>
 	<option>Torus</option>
 	<option>Sphere</option>
+	<option>Piramide</option>
     </select>
     </p>
     <p>Material Presets:<br>
