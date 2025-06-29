@@ -173,3 +173,7 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 .vscode/launch.json
+
+/20250629/lab8.zip
+/20250629/lab8/three.js-master/
+/20250614/Kody7_2024.zip

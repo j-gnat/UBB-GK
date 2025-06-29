@@ -124,7 +124,22 @@ function lights() {
     glLightfv(GL_LIGHT3, GL_POSITION, zero);
     uvSphere(0.5, 16, 8);
     glPopMatrix();
-
+    
+    if (pinkLight.checked) {
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, [1, 0, 1, 1]);
+        glEnable(GL_LIGHT3);
+    }
+    else {
+        glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, zero);
+        glDisable(GL_LIGHT3);
+    }
+    glPushMatrix();
+    glRotated((frameNumber-200)*2.2, 0, 1, 0);
+    glTranslated(8, 8, 0);
+    glLightfv(GL_LIGHT0, GL_POSITION, zero);
+    uvSphere(0.5, 16, 8);
+    glPopMatrix();
+    
     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, zero); // Turn off emission color!
 } // end lights()
 
@@ -277,6 +292,12 @@ function initGL() {
     glLightfv(GL_LIGHT3, GL_AMBIENT, bla);
     glLightfv(GL_LIGHT3, GL_DIFFUSE, bl);
     glLightfv(GL_LIGHT3, GL_SPECULAR, bl);
+
+    var pn = [1, 0, 0.5, 1];
+    var pnk = [0, 0, 0.1, 1];
+    glLightfv(GL_LIGHT0, GL_AMBIENT, pnk);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, pn);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, pn);
 }
 
 /* Animation function, called every 30 milliseconds if an animation is runnin */
@@ -304,12 +325,14 @@ function init() {
     redLight = document.getElementById("redLight");
     blueLight = document.getElementById("blueLight");
     greenLight = document.getElementById("greenLight");
+    pinkLight = document.getElementById("pinkLight");
     animate.checked = false;
     drawBase.checked = true;
     ambientLight.checked = true;
     viewpointLight.checked = true;
     redLight.checked = true;
     greenLight.checked = true;
+    pinkLight.checked = true
     blueLight.checked = true;
     drawBase.onchange = display;
     ambientLight.onchange = display;
@@ -317,6 +340,7 @@ function init() {
     redLight.onchange = display;
     blueLight.onchange = display;
     greenLight.onchange = display;
+    pinkLight.onchange = display;
     animate.onchange = function() {
 	if (animate.checked) {
 	    animating = true;
@@ -355,6 +379,7 @@ function init() {
 <label><input type="checkbox" id="redLight">Red Light</label><br>
 <label><input type="checkbox" id="greenLight">Green Light</label><br>
 <label><input type="checkbox" id="blueLight">Blue Light</label><br>
+<label><input type="checkbox" id="pinkLight">Pink Light</label><br>
 
 
 </p>
