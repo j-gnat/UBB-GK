@@ -14,11 +14,11 @@
     background-size: 100px 100px;
 }
 </style>
-<script src="D:\Users\jaros\GIT\UBB-GK\20250614\Kody7_2024\script\demo-core.js"></script>
-<script src="D:\Users\jaros\GIT\UBB-GK\20250614\Kody7_2024\script/glsim.js"></script>
-<script src="D:\Users\jaros\GIT\UBB-GK\20250614\Kody7_2024\script/teapot-model-IFS.js"></script>
-<script src="D:\Users\jaros\GIT\UBB-GK\20250614\Kody7_2024\script/basic-object-models-IFS.js"></script>
-<script src="D:\Users\jaros\GIT\UBB-GK\20250614\Kody7_2024\script/slider-canvas.js"></script>
+<script src="../script\demo-core.js"></script>
+<script src="../script/glsim.js"></script>
+<script src="../script/teapot-model-IFS.js"></script>
+<script src="../script/basic-object-models-IFS.js"></script>
+<script src="../script/slider-canvas.js"></script>
 <script>
 
 var camera;
@@ -39,16 +39,16 @@ var rotate = 0;
 var loadingImages = true;
 var textureImages = new Array();  // Will hold Image objects loaded from image URLs.
 var textureImageURLs = [
-    "textures/brick001.jpg",
-    "textures/Earth-1024x512.jpg",
-    "textures/NightEarth-512x256.jpg",
-    "textures/marble.jpg",
-    "textures/metal003.gif",
-    "textures/mandelbrot.jpeg"
+    "../textures/brick001.jpg",
+    "../textures/Earth-1024x512.jpg",
+    "../textures/NightEarth-512x256.jpg",
+    "../textures/marble.jpg",
+    "../textures/metal003.gif",
+    "../textures/mandelbrot.jpeg",
+    "../textures/MyTexture.jpg"
 ];
 
 function draw() {
-
     scale = sliderScale.value(0);
     rotate = sliderRotate.value(0);
     translateX = sliderTranslateX.value(0);
@@ -68,6 +68,9 @@ function draw() {
     glEnable(GL_TEXTURE_2D);
     glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,image.width,image.height,0,GL_RGBA,GL_UNSIGNED_BYTE,image);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  // MUST set this since we don't have mipmaps
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
@@ -182,6 +185,9 @@ function loadImages() {
                 return;
             }
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);  // MUST set this since we don't have mipmaps
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
             draw();
             document.getElementById("object").disabled = false;
             document.getElementById("texture").disabled = false;
@@ -255,6 +261,19 @@ function init() {
     loadImages();
 }
 
+/*
+ * For a texture to cover a block (cube) correctly:
+ * - The image should be a power-of-two size (e.g., 256x256, 512x512) for best compatibility.
+ * - The texture coordinates in the cube model must be set so that each face uses the full [0,1] range in both s and t.
+ * - The image should not have transparent areas unless you want transparency.
+ * - The image should be square or have the same aspect ratio as the face for undistorted mapping.
+ * - The file format should be supported by the browser (jpg, png, gif).
+ * - The image should be accessible (correct path, no CORS issues).
+ *
+ * In this project, the cube model is already set up to use the full texture on each face.
+ * If your texture appears distorted or not covering the block, check the above points.
+ */
+
 </script>
 </head>
 <body onload="init()">
@@ -277,6 +296,7 @@ function init() {
         <option value="3">Marble</option>
         <option value="4">Metal</option>
         <option value="5">Mandelbrot</option>
+        <option value="6">MyTexture</option>
     </select>
     <b style="margin-left:40px">Object</b>:
     <select id="object">

@@ -43,7 +43,7 @@ function draw() {
     
     draw2DScene();
     
-    if (objectNumber == 6) {
+    if (objectNumber == 7) {
         return;   // Just show the 2D scene as the image in the canvas.
     }
     
@@ -96,6 +96,10 @@ function draw() {
     case 5:
 	glScalef(0.06, 0.06, 0.06);
 	drawModel(teapot);
+	break;
+    case 6:
+	glScalef(1.06, 1.06, 1.06);
+	drawModel(piramide);
 	break;
     }
 
@@ -385,6 +389,7 @@ function init() {
     cylinder = uvCylinder();
     cone = uvCone();
     torus = uvTorus();
+    piramide = piramide();
     teapot = teapotModel;  // (This one is just a variable, defined in teapot-model-IFS.js)
     draw();
 }
@@ -411,7 +416,8 @@ function init() {
    <option value="3">Cone</option>
    <option value="4">Torus</option>
    <option value="5">Teapot</option>
-   <option value="6">SHOW 2D SCENE</option>
+   <option value="6">Piramide</option>
+   <option value="7">SHOW 2D SCENE</option>
 </select>
 <label><input type="checkbox" id="animate" style="margin-left:30px"><b>Animate</b></label></p>
 </div>

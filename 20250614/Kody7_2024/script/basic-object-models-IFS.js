@@ -1,4 +1,3 @@
-
 /**
  * The functions in this file create models in an
  * IFS format that can be drawn using gl.drawElements
@@ -205,6 +204,115 @@ function uvSphere(radius, slices, stacks) {
    };
 }
 
+function piramide(bottomRadius, height, sidesCount) {
+    // Provide default values if not specified
+    bottomRadius = bottomRadius || 1;
+    height = height || 2;
+    sidesCount = sidesCount || 10;
+
+    var coords = [];
+    var normals = [];
+    var texCoords = [];
+    var indices = [];
+
+    // Apex of the pyramid
+    coords.push(0, 0, height / 2);
+    // Placeholder normal for apex (not used for sides)
+    normals.push(0, 0, 1);
+    texCoords.push(0.5, 1);
+
+    // Base center
+    coords.push(0, 0, -height / 2);
+    normals.push(0, 0, -1);
+    texCoords.push(0.5, 0.5);
+
+    // Base vertices
+    for (var i = 0; i < sidesCount; i++) {
+        var angle = 2 * Math.PI * i / sidesCount;
+        var x = bottomRadius * Math.cos(angle);
+        var y = bottomRadius * Math.sin(angle);
+        var z = -height / 2;
+        coords.push(x, y, z);
+        normals.push(0, 0, -1); // For base
+        texCoords.push(0.5 + 0.5 * Math.cos(angle), 0.5 + 0.5 * Math.sin(angle));
+    }
+
+    // Side faces (flat shading: each triangle gets its own vertices and normals)
+    for (var i = 0; i < sidesCount; i++) {
+        var next = (i + 1) % sidesCount;
+        // Get base vertices
+        var bx = coords[3 * (2 + i)],     by = coords[3 * (2 + i) + 1],     bz = coords[3 * (2 + i) + 2];
+        var cx = coords[3 * (2 + next)],  cy = coords[3 * (2 + next) + 1],  cz = coords[3 * (2 + next) + 2];
+        var ax = coords[0], ay = coords[1], az = coords[2];
+
+        // Compute normal for this face
+        var ux = bx - ax, uy = by - ay, uz = bz - az;
+        var vx = cx - ax, vy = cy - ay, vz = cz - az;
+        var nx = uy * vz - uz * vy;
+        var ny = uz * vx - ux * vz;
+        var nz = ux * vy - uy * vx;
+        var len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+        if (len > 0) { nx /= len; ny /= len; nz /= len; }
+
+        // Add three new vertices for this face, each with the same normal
+        var vIdx = coords.length / 3;
+        coords.push(ax, ay, az); normals.push(nx, ny, nz); texCoords.push(0.5, 1);
+        coords.push(bx, by, bz); normals.push(nx, ny, nz); texCoords.push(0, 0);
+        coords.push(cx, cy, cz); normals.push(nx, ny, nz); texCoords.push(1, 0);
+        indices.push(vIdx, vIdx + 1, vIdx + 2);
+    }
+
+    // Base as a polygon (fully filled, using original base center and base vertices)
+    for (var i = 0; i < sidesCount; i++) {
+        var next = (i + 1) % sidesCount;
+        indices.push(1, 2 + next, 2 + i);
+    }
+
+    return {
+        vertexPositions: new Float32Array(coords),
+        vertexNormals: new Float32Array(normals),
+        vertexTextureCoords: new Float32Array(texCoords),
+        indices: new Uint16Array(indices)
+    };
+}
+ 
+ /**
+  * Create a model of a cube, centered at the origin.  (This is not
+  * a particularly good format for a cube, since an IFS representation
+  * has a lot of redundancy.)
+  * @side the length of a side of the cube.  If not given, the value will be 1.
+  */
+function cube(side) {
+   var s = (side || 1)/2;
+   var coords = [];
+   var normals = [];
+   var texCoords = [];
+   var indices = [];
+   function face(xyz, nrm) {
+      var start = coords.length/3;
+      var i;
+      for (i = 0; i < 12; i++) {
+         coords.push(xyz[i]);
+      }
+      for (i = 0; i < 4; i++) {
+         normals.push(nrm[0],nrm[1],nrm[2]);
+      }
+      texCoords.push(0,0,1,0,1,1,0,1);
+      indices.push(start,start+1,start+2,start,start+2,start+3);
+   }
+   face( [-s,-s,s, s,-s,s, s,s,s, -s,s,s], [0,0,1] );
+   face( [-s,-s,-s, -s,s,-s, s,s,-s, s,-s,-s], [0,0,-1] );
+   face( [-s,s,-s, -s,s,s, s,s,s, s,s,-s], [0,1,0] );
+   face( [-s,-s,-s, s,-s,-s, s,-s,s, -s,-s,s], [0,-1,0] );
+   face( [s,-s,-s, s,s,-s, s,s,s, s,-s,s], [1,0,0] );
+   face( [-s,-s,-s, -s,-s,s, -s,s,s, -s,s,-s], [-1,0,0] );
+   return {
+      vertexPositions: new Float32Array(coords),
+      vertexNormals: new Float32Array(normals),
+      vertexTextureCoords: new Float32Array(texCoords),
+      indices: new Uint16Array(indices)
+   }
+}
 
 /**
  * Create a model of a torus (surface of a doughnut).  The z-axis goes through the doughnut hole,
